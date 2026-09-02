@@ -63,7 +63,7 @@ borrando_historial(){
     history -c
     history -w
     salir
-} > /dev/null 2>&1
+}
 
 
 #	Chequeo que tenga permisos de sudo
