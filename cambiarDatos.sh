@@ -41,7 +41,7 @@ cambiar_llaves_ssh(){
 
 salir(){
    # Preguntar al usuario si desea apagar la VM
-   read -p "¿Deseas apagar la máquina virtual ahora? (s/n): " respuesta
+   read -p "Vamos a apagar la vm ya hicimos lo necesario. Presiona s: " respuesta
    case $respuesta in
       [sS]|[sS][iI])
          echo "Apagando el equipo..."
