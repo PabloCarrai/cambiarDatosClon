@@ -22,6 +22,14 @@ cambiar_nombre(){
    echo "Nombre del equipo cambiado $NOMBRE_EQUIPO"
 }
 
+reiniciar_id(){
+   truncate -s 0 /etc/machine-id
+   rm -f /var/lib/dbus/machine-id
+   ln -sf /etc/machine-id /var/lib/dbus/machine-id
+   systemd-machine-id-setup
+   echo "Regenerando id..."
+} > /dev/null 2>&1
+
 #	Chequeo que tenga permisos de sudo
 if [[ $EUID -ne 0 ]]; then
    echo "Este script debe ejecutarse con privilegios sudo." 
@@ -29,4 +37,5 @@ if [[ $EUID -ne 0 ]]; then
 else
    echo "1) Tienes permisos para continuar"
    cambiar_nombre
+   reiniciar_id
 fi
