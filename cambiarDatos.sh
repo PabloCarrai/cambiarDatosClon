@@ -39,22 +39,6 @@ cambiar_llaves_ssh(){
    sudo systemctl restart ssh
 } > /dev/null 2>&1 
 
-borrando_historial(){
-    # 1. Matar sesiones de otros usuarios (excepto el actual)
-    for user in $(awk -F: '$3 >= 1000 && $1 != "nobody" {print $1}' /etc/passwd); do
-        if [ "$user" != "$USER" ]; then
-            pkill -u "$user"
-        fi
-    done
-
-    # 2. Vaciar archivos de historial en disco
-    find /home /root -name ".*_history" -type f -exec sh -c 'echo -n "" > "$1"' _ {} \;
-
-    # 3. Limpiar memoria de la sesión actual
-    history -c
-    history -w
-} > /dev/null 2>&1 
-
 salir(){
    # Preguntar al usuario si desea apagar la VM
    read -p "¿Deseas apagar la máquina virtual ahora? (s/n): " respuesta
@@ -62,14 +46,30 @@ salir(){
    case "$respuesta" in
       [sS]|[sS][iI])
          echo "Apagando el equipo..."
-         borrando_historial
          shutdown -h now
-         ;;
-      *)
-         echo "Operación cancelada. Tu sesión sigue activa."
          ;;
    esac
 }
+
+borrando_historial(){
+    # 1. Desactivar el historial en la sesión actual para que no se guarde al salir
+    export HISTFILE=/dev/null
+    unset HISTFILE
+
+    # 2. Cerrar sesiones de otros usuarios
+    for user in $(awk -F: '$3 >= 1000 && $1 != "nobody" {print $1}' /etc/passwd); do
+        if [ "$user" != "$USER" ]; then
+            pkill -u "$user"
+        fi
+    done
+
+    # 3. Limpiar historial en memoria y archivos de todos los usuarios
+    history -c
+    history -w
+    find /home /root -name ".*_history" -type f -exec sh -c 'echo -n "" > "$1"' _ {} \;
+    history -c
+} > /dev/null 2>&1
+
 
 #	Chequeo que tenga permisos de sudo
 if [[ $EUID -ne 0 ]]; then
@@ -83,5 +83,5 @@ else
    echo "3) Regenerando llaves ssh....."
    cambiar_llaves_ssh
    echo "4) Terminando el trabajo"
-   salir
+   borrando_historial
 fi
