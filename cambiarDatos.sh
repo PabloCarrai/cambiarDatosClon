@@ -25,7 +25,14 @@ read -p "Bauticemos a este equipo, nuevo nombre? : " NOMBRE_EQUIPO
 if [ -z "$NOMBRE_EQUIPO" ]; then
     echo "Error: No ingresaste nada."
 else
+   {
    sed -i "s/${MI_EQUIPO}/${NOMBRE_EQUIPO}/g" /etc/hosts 
-    hostnamectl set-hostname "${NOMBRE_EQUIPO}" 
-    echo "Cambiamos el nombre del equipo a  $NOMBRE_EQUIPO"
+   hostnamectl set-hostname "${NOMBRE_EQUIPO}" 
+   truncate -s 0 /etc/machine-id 
+   rm -f /var/lib/dbus/machine-id 
+   systemd-machine-id-setup 
+   ln -sf /etc/machine-id /var/lib/dbus/machine-id 
+   rm -f /etc/ssh/ssh_host_* 
+   dpkg-reconfigure openssh-server 
+   } &> /dev/null
 fi
