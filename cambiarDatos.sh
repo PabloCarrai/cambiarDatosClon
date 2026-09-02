@@ -27,7 +27,6 @@ reiniciar_id(){
    rm -f /var/lib/dbus/machine-id
    ln -sf /etc/machine-id /var/lib/dbus/machine-id
    systemd-machine-id-setup
-   echo "Regenerando id..."
 } > /dev/null 2>&1
 
 #	Chequeo que tenga permisos de sudo
@@ -37,5 +36,6 @@ if [[ $EUID -ne 0 ]]; then
 else
    echo "1) Tienes permisos para continuar"
    cambiar_nombre
+   echo "2) Regenerando id..."
    reiniciar_id
 fi
