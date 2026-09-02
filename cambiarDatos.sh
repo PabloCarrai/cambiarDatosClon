@@ -29,6 +29,22 @@ reiniciar_id(){
    systemd-machine-id-setup
 } > /dev/null 2>&1
 
+cambiar_llaves_ssh(){
+   rm -f /etc/ssh/ssh_host_*_key*
+   if command -v dpkg-reconfigure &> /dev/null; then
+     dpkg-reconfigure openssh-server
+   else
+     sudo ssh-keygen -A
+   fi
+   sudo systemctl restart ssh
+} > /dev/null 2>&1 
+
+borrando_historial(){
+   history -c
+   history -w
+} > /dev/null 2>&1 
+
+
 #	Chequeo que tenga permisos de sudo
 if [[ $EUID -ne 0 ]]; then
    echo "Este script debe ejecutarse con privilegios sudo." 
@@ -38,4 +54,7 @@ else
    cambiar_nombre
    echo "2) Regenerando id..."
    reiniciar_id
+   echo "3) Regenerando llaves ssh....."
+   cambiar_llaves_ssh
+   echo "4) Borrando Historial...."
 fi
