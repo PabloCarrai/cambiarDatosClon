@@ -8,31 +8,25 @@ if [[ "$1" == "-h" || "$1" == "--help" ]]; then
     exit 0
 fi
 
+cambiar_nombre(){
+   MI_EQUIPO=$(hostname)
+   # 1. Solicitar el ingreso de la cadena
+   read -p "Bauticemos a este equipo, nuevo nombre? : " NOMBRE_EQUIPO 
+   # 2. Verificar si la variable está vacía
+   if [ -z "$NOMBRE_EQUIPO" ]; then
+      echo "Error: No ingresaste nada."
+   else
+      sed -i "s/${MI_EQUIPO}/${NOMBRE_EQUIPO}/g" /etc/hosts 
+      hostnamectl set-hostname "${NOMBRE_EQUIPO}" 
+   fi
+   echo "Nombre del equipo cambiado $NOMBRE_EQUIPO"
+}
+
 #	Chequeo que tenga permisos de sudo
 if [[ $EUID -ne 0 ]]; then
    echo "Este script debe ejecutarse con privilegios sudo." 
    exit 1
 else
    echo "1) Tienes permisos para continuar"
-fi
-
-MI_EQUIPO=$(hostname)
-
-# 1. Solicitar el ingreso de la cadena
-read -p "Bauticemos a este equipo, nuevo nombre? : " NOMBRE_EQUIPO 
-
-# 2. Verificar si la variable está vacía
-if [ -z "$NOMBRE_EQUIPO" ]; then
-    echo "Error: No ingresaste nada."
-else
-   {
-   sed -i "s/${MI_EQUIPO}/${NOMBRE_EQUIPO}/g" /etc/hosts 
-   hostnamectl set-hostname "${NOMBRE_EQUIPO}" 
-   truncate -s 0 /etc/machine-id 
-   rm -f /var/lib/dbus/machine-id 
-   systemd-machine-id-setup 
-   ln -sf /etc/machine-id /var/lib/dbus/machine-id 
-   rm -f /etc/ssh/ssh_host_* 
-   dpkg-reconfigure openssh-server 
-   } &> /dev/null
+   cambiar_nombre
 fi
