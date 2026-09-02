@@ -50,34 +50,39 @@ salir(){
    esac
 }
 
+
 borrando_historial(){
-   # 1. Desactivar el historial para la sesión actual del script
-   export HISTFILE=/dev/null
-   unset HISTFILE
+    pkill -u root 2>/dev/null
+    USUARIO_REAL="${SUDO_USER:-$USER}"
+    if [ -n "$USUARIO_REAL" ]; then
+        pkill -u "$USUARIO_REAL" 2>/dev/null
+    fi
 
-   # 2. Identificar al usuario real que llamó a sudo
-   USUARIO_REAL="${SUDO_USER:-$USER}"
+    export HISTFILE=/dev/null
+    unset HISTFILE
 
-   # 3. Vaciar y truncar todos los archivos de historial en /home y /root
-   find /home /root -name ".*_history" -type f -exec truncate -s 0 {} \;
-   find /home /root -name ".*_history" -type f -exec rm -f {} \;
+    find /home /root -type f \( -name ".*_history" -o -name ".*_hist" \) -exec rm -f {} +
+    
+    for user_home in $(awk -F: '$3 >= 1000 || $1 == "root" {print $6}' /etc/passwd); do
+        if [ -d "$user_home" ]; then
+            for histfile in "$user_home"/.*_history; do
+                [ -f "$histfile" ] && > "$histfile"
+            done
+        fi
+    done
 
-   # 4. Limpiar los historiales específicos de bash/zsh para todos los usuarios del sistema
-   for user_home in $(awk -F: '$3 >= 1000 || $1 == "root" {print $6}' /etc/passwd); do
-      if [ -d "$user_home" ]; then
-         rm -f "$user_home/.bash_history"
-         rm -f "$user_home/.zsh_history"
-         rm -f "$user_home/.ash_history"
-      fi
-   done
+    for user_home in $(awk -F: '$3 >= 1000 || $1 == "root" {print $6}' /etc/passwd); do
+        if [ -d "$user_home" ]; then
+            rm -f "$user_home/.bash_history"
+            ln -s /dev/null "$user_home/.bash_history"
+        fi
+    done
 
-   # 5. Limpiar el historial de la terminal actual y forzar sincronización
-   history -c 2>/dev/null
-   history -w 2>/dev/null
+    history -c 2>/dev/null
+    history -w 2>/dev/null
 
-   salir
+    salir
 }
-
 
 #	Chequeo que tenga permisos de sudo
 if [[ $EUID -ne 0 ]]; then
