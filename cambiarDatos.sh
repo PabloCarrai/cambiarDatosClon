@@ -1,18 +1,16 @@
 #!/bin/bash
 
-#	Muestra ayuda
 if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-    echo "Uso: sudo bash cambiarDatos.sh"
-    echo "Uso: sudo ./cambiarDatos.sh"
+    echo "sudo chmod +x cambiarDatos.sh"
+    echo "Uso: exec sudo bash cambiarDatos.sh"
+    echo "Uso: exec sudo ./cambiarDatos.sh"
     echo "  -h, --help    Muestra esta ayuda"
     exit 0
 fi
 
 cambiar_nombre(){
    MI_EQUIPO=$(hostname)
-   # 1. Solicitar el ingreso de la cadena
    read -p "Bauticemos a este equipo, nuevo nombre? : " NOMBRE_EQUIPO 
-   # 2. Verificar si la variable está vacía
    if [ -z "$NOMBRE_EQUIPO" ]; then
       echo "Error: No ingresaste nada."
    else
@@ -40,7 +38,6 @@ cambiar_llaves_ssh(){
 } > /dev/null 2>&1 
 
 salir(){
-   # Preguntar al usuario si desea apagar la VM
    read -p "Vamos a apagar la vm ya hicimos lo necesario. Presiona s: " respuesta
    case $respuesta in
       [sS]|[sS][iI])
@@ -51,10 +48,8 @@ salir(){
 }
 
 borrando_historial(){
-   # 1. Borrar físicamente los archivos de historial existentes de todos los usuarios y root
    find /home /root -type f \( -name ".*_history" -o -name ".*_hist" -o -name ".*info" \) -exec rm -f {} +
 
-   # 2. Asegurar que existan los archivos limpios y vacíos para evitar errores posteriores
    for user_home in $(awk -F: '$3 >= 1000 || $1 == "root" {print $6}' /etc/passwd); do
       if [ -d "$user_home" ]; then
          touch "$user_home/.bash_history"
@@ -63,17 +58,13 @@ borrando_historial(){
       fi
    done
 
-   # 3. Limpiar la memoria RAM de la sesión actual y sobreescribir el archivo con vacíos (-cw)
    history -c
    history -w
 
-   # 4. Proceder al apagado normal
    salir
 }
 
 
-
-#	Chequeo que tenga permisos de sudo
 if [[ $EUID -ne 0 ]]; then
    echo "Este script debe ejecutarse con privilegios sudo." 
    exit 1
