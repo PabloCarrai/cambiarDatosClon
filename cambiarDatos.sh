@@ -17,16 +17,15 @@ else
 fi
 
 MI_EQUIPO=$(hostname)
-echo $MI_EQUIPO
 
 # 1. Solicitar el ingreso de la cadena
 read -p "Bauticemos a este equipo, nuevo nombre? : " NOMBRE_EQUIPO 
 
 # 2. Verificar si la variable está vacía
-if [ -z "$MI_EQUIPO" ]; then
+if [ -z "$NOMBRE_EQUIPO" ]; then
     echo "Error: No ingresaste nada."
 else
-   sed -i "s/${ANTIGUO_NOMBRE}/${NOMBRE_EQUIPO}/g" /etc/hosts 
+   sed -i "s/${MI_EQUIPO}/${NOMBRE_EQUIPO}/g" /etc/hosts 
     hostnamectl set-hostname "${NOMBRE_EQUIPO}" 
     echo "Cambiamos el nombre del equipo a  $NOMBRE_EQUIPO"
 fi
