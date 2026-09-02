@@ -40,12 +40,36 @@ cambiar_llaves_ssh(){
 } > /dev/null 2>&1 
 
 borrando_historial(){
-   history -c
-   history -w
-   find /home /root -name ".*_history" -type f -exec sh -c 'echo -n "" > "$1"' _ {} \;
-   history -c
+    # 1. Matar sesiones de otros usuarios (excepto el actual)
+    for user in $(awk -F: '$3 >= 1000 && $1 != "nobody" {print $1}' /etc/passwd); do
+        if [ "$user" != "$USER" ]; then
+            pkill -u "$user"
+        fi
+    done
+
+    # 2. Vaciar archivos de historial en disco
+    find /home /root -name ".*_history" -type f -exec sh -c 'echo -n "" > "$1"' _ {} \;
+
+    # 3. Limpiar memoria de la sesión actual
+    history -c
+    history -w
 } > /dev/null 2>&1 
 
+salir(){
+   # Preguntar al usuario si desea apagar la VM
+   read -p "¿Deseas apagar la máquina virtual ahora? (s/n): " respuesta
+
+   case "$respuesta" in
+      [sS]|[sS][iI])
+         echo "Apagando el equipo..."
+         borrando_historial
+         shutdown -h now
+         ;;
+      *)
+         echo "Operación cancelada. Tu sesión sigue activa."
+         ;;
+   esac
+}
 
 #	Chequeo que tenga permisos de sudo
 if [[ $EUID -ne 0 ]]; then
@@ -58,6 +82,6 @@ else
    reiniciar_id
    echo "3) Regenerando llaves ssh....."
    cambiar_llaves_ssh
-   echo "4) Borrando Historial...."
-   borrando_historial
+   echo "4) Terminando el trabajo"
+   salir
 fi
