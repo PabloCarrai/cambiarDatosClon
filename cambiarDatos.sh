@@ -26,7 +26,7 @@ read -p "Bauticemos a este equipo, nuevo nombre? : " NOMBRE_EQUIPO
 if [ -z "$MI_EQUIPO" ]; then
     echo "Error: No ingresaste nada."
 else
-    sed -i "s/\b${ANTIGUO_NOMBRE}\b/${NOMBRE_EQUIPO}/g" /etc/hosts
+   sed -i "s/${ANTIGUO_NOMBRE}/${NOMBRE_EQUIPO}/g" /etc/hosts 
     hostnamectl set-hostname "${NOMBRE_EQUIPO}" 
     echo "Cambiamos el nombre del equipo a  $NOMBRE_EQUIPO"
 fi
