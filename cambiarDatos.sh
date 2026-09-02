@@ -50,39 +50,28 @@ salir(){
    esac
 }
 
-
 borrando_historial(){
-    pkill -u root 2>/dev/null
-    USUARIO_REAL="${SUDO_USER:-$USER}"
-    if [ -n "$USUARIO_REAL" ]; then
-        pkill -u "$USUARIO_REAL" 2>/dev/null
-    fi
+   # 1. Borrar físicamente los archivos de historial existentes de todos los usuarios y root
+   find /home /root -type f \( -name ".*_history" -o -name ".*_hist" -o -name ".*info" \) -exec rm -f {} +
 
-    export HISTFILE=/dev/null
-    unset HISTFILE
+   # 2. Asegurar que existan los archivos limpios y vacíos para evitar errores posteriores
+   for user_home in $(awk -F: '$3 >= 1000 || $1 == "root" {print $6}' /etc/passwd); do
+      if [ -d "$user_home" ]; then
+         touch "$user_home/.bash_history"
+         chown $(stat -c '%u:%g' "$user_home") "$user_home/.bash_history"
+         chmod 600 "$user_home/.bash_history"
+      fi
+   done
 
-    find /home /root -type f \( -name ".*_history" -o -name ".*_hist" \) -exec rm -f {} +
-    
-    for user_home in $(awk -F: '$3 >= 1000 || $1 == "root" {print $6}' /etc/passwd); do
-        if [ -d "$user_home" ]; then
-            for histfile in "$user_home"/.*_history; do
-                [ -f "$histfile" ] && > "$histfile"
-            done
-        fi
-    done
+   # 3. Limpiar la memoria RAM de la sesión actual y sobreescribir el archivo con vacíos (-cw)
+   history -c
+   history -w
 
-    for user_home in $(awk -F: '$3 >= 1000 || $1 == "root" {print $6}' /etc/passwd); do
-        if [ -d "$user_home" ]; then
-            rm -f "$user_home/.bash_history"
-            ln -s /dev/null "$user_home/.bash_history"
-        fi
-    done
-
-    history -c 2>/dev/null
-    history -w 2>/dev/null
-
-    salir
+   # 4. Proceder al apagado normal
+   salir
 }
+
+
 
 #	Chequeo que tenga permisos de sudo
 if [[ $EUID -ne 0 ]]; then
