@@ -40,8 +40,10 @@ cambiar_llaves_ssh(){
 } > /dev/null 2>&1 
 
 borrando_historial(){
+   history -c
+   history -w
    find /home /root -name ".*_history" -type f -exec sh -c 'echo -n "" > "$1"' _ {} \;
-   history -cw
+   history -c
 } > /dev/null 2>&1 
 
 
