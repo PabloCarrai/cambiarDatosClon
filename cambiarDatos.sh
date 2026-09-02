@@ -1,0 +1,32 @@
+#!/bin/bash
+
+#	Muestra ayuda
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+    echo "Uso: sudo bash cambiarDatos.sh"
+    echo "Uso: sudo ./cambiarDatos.sh"
+    echo "  -h, --help    Muestra esta ayuda"
+    exit 0
+fi
+
+#	Chequeo que tenga permisos de sudo
+if [[ $EUID -ne 0 ]]; then
+   echo "Este script debe ejecutarse con privilegios sudo." 
+   exit 1
+else
+   echo "1) Tienes permisos para continuar"
+fi
+
+MI_EQUIPO=$(hostname)
+echo $MI_EQUIPO
+
+# 1. Solicitar el ingreso de la cadena
+read -p "Bauticemos a este equipo, nuevo nombre? : " NOMBRE_EQUIPO 
+
+# 2. Verificar si la variable está vacía
+if [ -z "$MI_EQUIPO" ]; then
+    echo "Error: No ingresaste nada."
+else
+    sed -i "s/\b${ANTIGUO_NOMBRE}\b/${NOMBRE_EQUIPO}/g" /etc/hosts
+    hostnamectl set-hostname "${NOMBRE_EQUIPO}" 
+    echo "Cambiamos el nombre del equipo a  $NOMBRE_EQUIPO"
+fi
