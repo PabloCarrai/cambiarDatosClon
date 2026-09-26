@@ -47,6 +47,19 @@ salir(){
    esac
 }
 
+setear_zona_horaria(){ 
+	ZONA_HORARIA="America/Argentina/Buenos_Aires"
+
+	echo "Configurando la zona horaria a $ZONA_HORARIA..."
+
+	if command -v timedatectl >/dev/null 2>&1; then
+		timedatectl set-timezone "$ZONA_HORARIA"
+	else
+                echo "Error: No se pudo configurar la zona horaria. Zona no encontrada." >&2
+		exit 1
+	fi
+}
+
 borrando_historial(){
    find /home /root -type f \( -name ".*_history" -o -name ".*_hist" -o -name ".*info" \) -exec rm -f {} +
 
@@ -71,10 +84,12 @@ if [[ $EUID -ne 0 ]]; then
 else
    echo "1) Tienes permisos para continuar"
    cambiar_nombre
-   echo "2) Regenerando id..."
+   echo "2) Seteando zona horaria" 
+   setear_zona_horaria
+   echo "3) Regenerando id..."
    reiniciar_id
-   echo "3) Regenerando llaves ssh....."
+   echo "4) Regenerando llaves ssh....."
    cambiar_llaves_ssh
-   echo "4) Terminando el trabajo"
+   echo "5) Terminando el trabajo"
    borrando_historial
 fi
