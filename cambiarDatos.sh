@@ -54,6 +54,7 @@ setear_zona_horaria(){
 
 	if command -v timedatectl >/dev/null 2>&1; then
 		timedatectl set-timezone "$ZONA_HORARIA"
+		timedatectl set-ntp true
 	else
                 echo "Error: No se pudo configurar la zona horaria. Zona no encontrada." >&2
 		exit 1
